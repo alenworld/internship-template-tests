@@ -1,0 +1,37 @@
+{
+  "name": "intership-template-testing",
+  "version": "1.0.0",
+  "description": "```     https://hapi.dev/family/joi/ ```",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alenworld/internship-template-tests.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alenworld/internship-template-tests/issues"
+  },
+  "homepage": "https://github.com/alenworld/internship-template-tests#readme",
+  "dependencies": {
+    "joi": "17.1.1",
+    "commitizen": "4.2.4",
+    "compression": "1.7.4",
+    "cookie-parser": "1.4.6",
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "helmet": "4.6.0",
+    "mongoose": "6.0.14"
+  },
+  "devDependencies": {
+    "cz-conventional-changelog": "3.3.0",
+    "eslint": "8.3.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-plugin-import": "2.25.3",
+    "nodemon": "2.0.15"
+  },
+  "keywords": []
+}
