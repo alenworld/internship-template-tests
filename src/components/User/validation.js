@@ -31,8 +31,9 @@ class UserValidation extends Validation {
         email: this.Joi.string().email(),
         fullName: this.Joi
           .string()
-          .min(1)
+          .min(2)
           .max(30)
+          .pattern(/^[0-9'!#$%&'*+/=?^_`{|}~-]$/)
           .required(),
       })
       .validate(profile);
@@ -50,8 +51,9 @@ class UserValidation extends Validation {
         id: this.Joi.objectId(),
         fullName: this.Joi
           .string()
-          .min(1)
+          .min(2)
           .max(30)
+          .pattern(/^[0-9'!#$%&'*+/=?^_`{|}~-]$/)
           .required(),
       })
       .validate(data);

@@ -1,7 +1,9 @@
 const mongoose = require('mongoose');
+require('dotenv').config();
 
-const MONGODB_URI = 'mongodb://localhost:27017/';
-const MONGODB_DB_MAIN = 'users_db';
+const { MONGODB_URI, NODE_ENV } = process.env;
+
+const MONGODB_DB_MAIN = NODE_ENV === 'test' ? 'users-test' : 'users';
 const MONGO_URI = `${MONGODB_URI}${MONGODB_DB_MAIN}`;
 
 const connectOptions = {
