@@ -180,4 +180,139 @@ describe('UserComponent -> controller', () => {
         .catch((err) => done(err));
     });
   });
+
+  describe('updateById', () => {
+    let response;
+    const data = {};
+
+    beforeAll(async () => {
+      data.email = 'testerupdate@mail.com';
+      data.fullName = 'Tester NotUpdated';
+      JSON.stringify(data);
+      response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
+        .send(data);
+    });
+
+    test('when user returned and updated successfully', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      newData.fullName = 'Updated Name';
+      JSON.stringify(newData);
+      supertest(server)
+        .put('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(body).toHaveProperty('data');
+          expect(body.data.acknowledged).toBe(true);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    test('when updated field is empty', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      newData.fullName = '';
+      JSON.stringify(newData);
+      supertest(server)
+        .put('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(422);
+          expect(body).toHaveProperty('details');
+          expect(body.details[0].message).toBe('"fullName" is not allowed to be empty');
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    test('when updated field is too long', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      newData.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      JSON.stringify(newData);
+      supertest(server)
+        .put('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(422);
+          expect(body).toHaveProperty('details');
+          expect(body.details[0].message).toBe('"fullName" length must be less than or equal to 30 characters long');
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    test('when updated field length must be more than 5 characters', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      newData.fullName = 'aaa';
+      JSON.stringify(newData);
+      supertest(server)
+        .put('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(422);
+          expect(body).toHaveProperty('details');
+          expect(body.details[0].message).toBe('"fullName" length must be at least 5 characters long');
+          done();
+        })
+        .catch((err) => done(err));
+    });
+  });
+
+  describe('deleteById', () => {
+    let response;
+    const data = {};
+
+    beforeAll(async () => {
+      data.email = 'testerdelete@mail.com';
+      data.fullName = 'Tester Delete';
+      JSON.stringify(data);
+      response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
+        .send(data);
+    });
+
+    test('when deleted successfully', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      JSON.stringify(newData);
+      supertest(server)
+        .delete('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(body).toHaveProperty('data');
+          expect(body.data.deletedCount).toBe(1);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    test('when deleted not successfully', (done) => {
+      const newData = {};
+      newData.id = response.body.data._id;
+      JSON.stringify(newData);
+      supertest(server)
+        .delete('/v1/users')
+        .set('Accept', 'application/json')
+        .type('json')
+        .send(newData)
+        .then(({ body }) => {
+          expect(body).toHaveProperty('data');
+          expect(body.data.deletedCount).toBe(0);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+  });
 });

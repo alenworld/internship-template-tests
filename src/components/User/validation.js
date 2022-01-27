@@ -54,7 +54,7 @@ class UserValidation extends Validation {
         id: this.Joi.objectId(),
         fullName: this.Joi
           .string()
-          .min(2)
+          .min(5)
           .max(30)
           .required(),
       })

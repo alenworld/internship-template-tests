@@ -1,8 +1,13 @@
+require('dotenv').config();
 const { Error } = require('mongoose');
 const UserModel = require('../model');
 const connections = require('../../../config/connection');
 
 const userData = { email: 'testedemail@mail.com', fullName: 'Tester Test' };
+
+beforeAll(() => {
+  process.env.NODE_ENV = 'test';
+});
 
 describe('UserComponent -> model', () => {
   beforeAll(async () => {
