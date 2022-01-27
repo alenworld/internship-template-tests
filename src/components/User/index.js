@@ -72,15 +72,14 @@ async function findById(req, res, next) {
  */
 async function create(req, res, next) {
   try {
-    const { error } = UserValidation.create(req.body);
-
+    const { error, value } = UserValidation.create(req.body);
     if (error) {
       throw new ValidationError(error.details);
     }
 
-    const user = await UserService.create(req.body);
+    const user = await UserService.create(value);
 
-    return res.status(200).json({
+    return res.status(201).json({
       data: user,
     });
   } catch (error) {
