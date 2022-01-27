@@ -1,9 +1,12 @@
 require('dotenv').config();
 const supertest = require('supertest');
+const connections = require('../../../config/connection');
 const server = require('../../../server/server');
 const UserModel = require('../model');
 
 process.env.NODE_ENV = 'test';
+
+// afterAll((done) => server && server.close(done));
 
 describe('UserComponent -> controller', () => {
   beforeAll(async () => {
@@ -12,6 +15,7 @@ describe('UserComponent -> controller', () => {
 
   afterAll(async () => {
     await UserModel.deleteMany({});
+    await connections.close();
   });
 
   describe('findAll', () => {

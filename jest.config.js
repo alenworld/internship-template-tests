@@ -1,7 +1,7 @@
 module.exports = {
   verbose: true,
   collectCoverage: true,
-  collectCoverageFrom: ['**/*.{js,jsx}', '!**/node_modules/**', '!**/vendor/**'],
+  collectCoverageFrom: ['**/*.js', '!**/node_modules/**', '!**/vendor/**'],
   coverageReporters: ['json', 'lcov', 'text-summary'],
   coverageThreshold: {
     global: {
