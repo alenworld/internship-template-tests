@@ -4,9 +4,9 @@ const connections = require('../../../config/connection');
 const server = require('../../../server/server');
 const UserModel = require('../model');
 
-process.env.NODE_ENV = 'test';
-
-// afterAll((done) => server && server.close(done));
+beforeAll(() => {
+  process.env.NODE_ENV = 'test';
+});
 
 describe('UserComponent -> controller', () => {
   beforeAll(async () => {

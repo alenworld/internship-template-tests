@@ -24,12 +24,15 @@ describe('UserComponent -> service', () => {
     });
   });
 
+  let uid;
+
   describe('create', () => {
     test('create', (done) => {
       const profile = { email: 'test@gmail.com', fullName: 'Tester Name' };
       UserService.create(profile)
         .then((data) => {
           expect(data).toMatchObject(profile);
+          uid = data._id;
           done();
         })
         .catch((err) => done(err));
@@ -42,6 +45,17 @@ describe('UserComponent -> service', () => {
         .then((data) => {
           expect(data).toBeInstanceOf(Array);
           expect(data.length).toBe(1);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+  });
+
+  describe('findById', () => {
+    test('when return an array with user', (done) => {
+      UserService.findById(uid)
+        .then((data) => {
+          expect(data._id).toStrictEqual(uid);
           done();
         })
         .catch((err) => done(err));
