@@ -2,23 +2,23 @@
     "env": {
         "commonjs": true,
         "es2021": true,
-        "jest/globals": true
+        "node": true
     },
     "plugins": [
-        "jest",
-        "jest-formatting"
+      "jest",
+      "jest-formatting"
     ],
     "extends": [
-        "airbnb-base",
-        "plugin:jest-formatting/recommended"
+        "airbnb-base"
     ],
     "parserOptions": {
         "ecmaVersion": 12
     },
     "rules": {
         "indent": ["error", 2],
-        "no-console": "off",
-        "jest-formatting/padding-around-describe-blocks": 2,
-        "jest-formatting/padding-around-test-blocks": 2
+        "no-console": "off"
+    },
+    "globals": {
+      "jest/globals":true
     }
 }

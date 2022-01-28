@@ -1,29 +1,36 @@
-require('dotenv').config();
 const supertest = require('supertest');
+const mongoose = require('mongoose');
 const connections = require('../../../config/connection');
 const server = require('../../../server/server');
 const UserModel = require('../model');
 
-process.env.NODE_ENV = test;
+const userId = new mongoose.Types.ObjectId().toString();
 
-describe('UserComponent -> controller', () => {
-  beforeAll(async () => {
-    await UserModel.deleteMany({}).catch((err) => {
-      console.error(err);
-    });
-  });
+const userPayload = {
+  _id: userId,
+  email: 'john.doe@example.com',
+  fullName: 'JohnDoe',
+};
 
-  afterAll(async () => {
-    await UserModel.deleteMany({}).catch((err) => {
-      console.error(err);
-    });
-    await connections.close().catch((err) => {
-      console.error(err);
-    });
-  });
+const userInput = {
+  email: 'test@example.com',
+  fullName: 'JohnDoe',
+};
 
-  describe('findAll', () => {
-    test('when users list is empty', (done) => {
+/** *************^^^^^^^^^^^^^^^^^^^^^*************** */
+/** **************IMPORTS AND CONSTS***************** */
+/** ************************************************* */
+beforeAll(async () => {
+  await UserModel.deleteMany({});
+});
+
+afterAll(async () => {
+  await UserModel.deleteMany({});
+  await connections.close();
+});
+describe('UserComponent', () => {
+  describe('GET /v1/users', () => {
+    test('should return a list users', (done) => {
       supertest(server)
         .get('/v1/users')
         .set('Accept', 'application/json')
@@ -31,245 +38,265 @@ describe('UserComponent -> controller', () => {
         .expect(200)
         .then(({ body }) => {
           expect(body).toHaveProperty('data');
-          expect(body.data.length).toBe(0);
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when users list length >= 1', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'test@test.com', fullName: 'TestName' })
-        .then((response) => {
-          expect(response.status).toEqual(201);
-        });
-      supertest(server)
-        .get('/v1/users')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('data');
-          expect(body.data.length).not.toBe(0);
           done();
         })
         .catch((err) => done(err));
     });
   });
 
-  describe('create', () => {
-    test('when body validate', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'test@test.com', fullName: 'TestName' })
-        .then(({ body }) => {
-          expect(201);
-          expect(body).toHaveProperty('data');
-          expect(body.data.email).toBe('test@test.com');
+  describe('POST /v1/users', () => {
+    describe('given the user payload are valid', () => {
+      test('should return a 201 and user', (done) => {
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(201);
+            expect(body).toHaveProperty('data');
+            expect(body.data).toMatchObject(userInput);
 
-          done();
-        })
-        .catch((err) => done(err));
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('E11000: should return 500 because email already exists', (done) => {
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(500);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('MongoServerError');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
     });
 
-    test('when email not valid', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'testcom', fullName: 'Testame' })
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"email" must be a valid email');
+    describe('should return 422, given the user payloads are not valid', () => {
+      test('the email should not be empty', (done) => {
+        userInput.email = '';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
 
-          done();
-        })
-        .catch((err) => done(err));
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('the email string are not valid', (done) => {
+        userInput.email = 'notemail';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('the fullName should not be empty', (done) => {
+        userInput.email = 'test@example.com';
+        userInput.fullName = '';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('the fullname should more than 5 characters', (done) => {
+        userInput.fullName = 'asd';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('the fullName should not more than 30 characters', (done) => {
+        userInput.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('the fullName field cannot be contains numbers, symbols and whitespace', (done) => {
+        userInput.fullName = 'T3st#r ';
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then(({ body }) => {
+            expect(422);
+            expect(body).toHaveProperty('message');
+            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+
+            done();
+          })
+          .catch((err) => done(err));
+      });
     });
+  });
 
-    test('when email is empty', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: '', fullName: 'Test' })
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"email" is not allowed to be empty');
+  describe('GET /v1/users/:id', () => {
+    describe('given _id are valid', () => {
+      let newUserId;
 
-          done();
-        })
-        .catch((err) => done(err));
-    });
+      beforeAll(async () => {
+        userInput.fullName = 'newUser';
+        userInput.email = 'newusertest@example.com';
+        const response = await UserModel.create(userInput);
+        newUserId = response._id;
+      });
 
-    test('when fullname length < 5 ', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'test@gmail.com', fullName: 'a' })
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" length must be at least 5 characters long');
+      afterEach(async () => {
+        await UserModel.findByIdAndRemove(newUserId);
+      });
 
-          done();
-        })
-        .catch((err) => done(err));
-    });
+      test('should return a 200 and user', (done) => {
+        userInput.fullName = 'NewName';
+        supertest(server)
+          .get(`/v1/users/${newUserId}`)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then(() => {
+            done();
+          })
+          .catch((err) => done(err));
+      });
 
-    test('when fullname length > 30 ', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'test@gmail.com', fullName: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' })
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" length must be less than or equal to 30 characters long');
-
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when fullname is empty', (done) => {
-      supertest(server)
-        .post('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send({ email: 'test@gmail.com', fullName: '' })
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" is not allowed to be empty');
-
-          done();
-        })
-        .catch((err) => done(err));
+      test('should return 404 with user not found', (done) => {
+        supertest(server)
+          .get(`/v1/users/${newUserId}`)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(200)
+          .then(({ body }) => {
+            expect(404).toBe(404);
+            expect(body.data).toBeNull();
+            done();
+          })
+          .catch((err) => done(err));
+      });
     });
   });
 
-  describe('findById', () => {
-    let response;
-    const data = {};
+  describe('PUT /v1/users/:id', () => {
+    describe('given user payload are valid', (done) => {
+      userInput.email = 'newemail@gmail.com';
+      test('should return 200 and updated user', (done) => {
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .expect(201)
+          .then(() => {
+            userInput.fullName = 'updatedNameHere';
+            supertest(server)
+              .put('/v1/users')
+              .set('Accept', 'application/json')
+              .type('json')
+              .expect(200)
+              .then(({ body }) => {
+                expect(body.data.acknowledged).toBe(true);
+              });
+            done();
+          })
+          .catch((err) => done(err));
+      });
 
-    beforeAll(async () => {
-      data.email = 'tester@mail.com';
-      data.fullName = 'Tester';
-      JSON.stringify(data);
-      response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
-        .send(data);
+      /** ************************************************* */
+      /** *****************STOPPED HERE******************** */
+      /** ************************************************* */
+
+      test('should return 404 with user not found', (done) => {
+        done();
+      });
     });
 
-    test('/v1/users/:id', (done) => {
-      supertest(server)
-        .get(`/v1/users/${response.body.data._id}`)
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
-        .expect(200)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('data');
-          expect(body.data).toMatchObject(data);
-          done();
-        })
-        .catch((err) => done(err));
-    });
-  });
+    describe('should return 422, given user payload are not valid', () => {
+      test('given fullName cannot be empty', (done) => {
+        // use service mock
+        // then supertest(server)
+        done();
+      });
 
-  describe('updateById', () => {
-    let response;
-    const data = {};
+      test('given fullName must be more than 5 characters', (done) => {
+        done();
+      });
 
-    beforeAll(async () => {
-      data.email = 'testerupdate@mail.com';
-      data.fullName = 'TesterNotUpdated';
-      JSON.stringify(data);
-      response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
-        .send(data);
-    });
+      test('given fullName is more than 30 characters', (done) => {
+        done();
+      });
 
-    test('when user returned and updated successfully', (done) => {
-      const newData = {};
-      newData.id = response.body.data.id;
-      newData.fullName = 'UpdatedName';
-      JSON.stringify(newData);
-      supertest(server)
-        .put('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('data');
-          expect(body.data.acknowledged).toBe(true);
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when updated field is empty', (done) => {
-      const newData = {};
-      newData.id = response.body.data.id;
-      newData.fullName = '';
-      JSON.stringify(newData);
-      supertest(server)
-        .put('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" is not allowed to be empty');
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when updated field is too long', (done) => {
-      const newData = {};
-      newData.id = response.body.data.id;
-      newData.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-      JSON.stringify(newData);
-      supertest(server)
-        .put('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" length must be less than or equal to 30 characters long');
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when updated field length must be more than 5 characters', (done) => {
-      const newData = {};
-      newData.id = response.body.data.id;
-      newData.fullName = 'aaa';
-      JSON.stringify(newData);
-      supertest(server)
-        .put('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(422);
-          expect(body).toHaveProperty('details');
-          expect(body.details[0].message).toBe('"fullName" length must be at least 5 characters long');
-          done();
-        })
-        .catch((err) => done(err));
+      test('given fullName field cannot be contains numbers, symbols and whitespace', (done) => {
+        done();
+      });
     });
   });
+  // PUT id
+
+  describe('DELETE /v1/users/:id', () => {
+    describe('given user payload are valid', () => {
+      test('should return 200 and check user was not found 404', (done) => {
+        // use service mock
+        // then supertest(server)
+        done();
+      });
+
+      test('should return 404 with user not found', (done) => {
+        done();
+      });
+    });
+  });
+  // DELETE id
 });

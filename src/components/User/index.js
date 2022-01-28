@@ -108,13 +108,13 @@ async function create(req, res, next) {
  */
 async function updateById(req, res, next) {
   try {
-    const { error } = UserValidation.updateById(req.body);
+    const { error, value } = UserValidation.updateById(req.body);
 
     if (error) {
       throw new ValidationError(error.details);
     }
 
-    const updatedUser = await UserService.updateById(req.body.id, req.body);
+    const updatedUser = await UserService.updateById(value.id, value);
 
     return res.status(200).json({
       data: updatedUser,
@@ -153,7 +153,7 @@ async function deleteById(req, res, next) {
 
     const deletedUser = await UserService.deleteById(req.body.id);
 
-    return res.status(204).json({
+    return res.status(200).json({
       data: deletedUser,
     });
   } catch (error) {
