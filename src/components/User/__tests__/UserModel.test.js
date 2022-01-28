@@ -3,11 +3,9 @@ const { Error } = require('mongoose');
 const UserModel = require('../model');
 const connections = require('../../../config/connection');
 
-const userData = { email: 'testedemail@mail.com', fullName: 'Tester Test' };
+const userData = { email: 'testedemail@mail.com', fullName: 'Tester' };
 
-beforeAll(() => {
-  process.env.NODE_ENV = 'test';
-});
+process.env.NODE_ENV = 'test';
 
 describe('UserComponent -> model', () => {
   beforeAll(async () => {
@@ -34,8 +32,8 @@ describe('UserComponent -> model', () => {
   });
 
   test('insert user successfully, but the field does not defined in schema should be undefined', async () => {
-    const userWithInvalidField = await UserModel.create({ email: 'tester@mail.com', fullName: 'Good Name', nickname: 'testerusername' });
-
+    const userWithInvalidField = await UserModel.create({ email: 'tester@mail.com', fullName: 'GoodName', nickname: 'testerusername' });
+    
     expect(userWithInvalidField._id).toBeDefined();
     expect(userWithInvalidField.nickname).toBeUndefined();
   });
@@ -48,7 +46,7 @@ describe('UserComponent -> model', () => {
       err = error;
     }
 
-    expect(err).toBeInstanceOf(Error.ValidationError);
+    expect(err).toBeInstanceOf(UserModel.);
     expect(err.errors.fullName).toBeDefined();
   });
 });

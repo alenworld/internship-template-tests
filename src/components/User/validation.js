@@ -36,7 +36,7 @@ class UserValidation extends Validation {
           .trim()
           .min(5)
           .max(30)
-          .pattern(/^[a-zA-Z ]*$/)
+          .pattern(/^[a-zA-Z]*$/)
           .required(),
       })
       .validate(profile);
@@ -54,8 +54,10 @@ class UserValidation extends Validation {
         id: this.Joi.objectId(),
         fullName: this.Joi
           .string()
+          .trim()
           .min(5)
           .max(30)
+          .pattern(/^[a-zA-Z]*$/)
           .required(),
       })
       .validate(data);

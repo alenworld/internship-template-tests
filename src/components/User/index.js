@@ -153,7 +153,7 @@ async function deleteById(req, res, next) {
 
     const deletedUser = await UserService.deleteById(req.body.id);
 
-    return res.status(200).json({
+    return res.status(204).json({
       data: deletedUser,
     });
   } catch (error) {

@@ -1,4 +1,3 @@
-const bodyParser = require('body-parser');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
@@ -13,10 +12,10 @@ module.exports = {
      * @returns void
      */
   init(app) {
-    app.use(bodyParser.urlencoded({
+    app.use(express.urlencoded({
       extended: false,
     }));
-    app.use(bodyParser.json());
+    app.use(express.json());
     // parse Cookie header and populate req.cookies with an object keyed by the cookie names.
     app.use(cookieParser());
     // returns the compression middleware

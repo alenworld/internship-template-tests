@@ -4,18 +4,22 @@ const connections = require('../../../config/connection');
 const server = require('../../../server/server');
 const UserModel = require('../model');
 
-beforeAll(() => {
-  process.env.NODE_ENV = 'test';
-});
+process.env.NODE_ENV = test;
 
 describe('UserComponent -> controller', () => {
   beforeAll(async () => {
-    await UserModel.deleteMany({});
+    await UserModel.deleteMany({}).catch((err) => {
+      console.error(err);
+    });
   });
 
   afterAll(async () => {
-    await UserModel.deleteMany({});
-    await connections.close();
+    await UserModel.deleteMany({}).catch((err) => {
+      console.error(err);
+    });
+    await connections.close().catch((err) => {
+      console.error(err);
+    });
   });
 
   describe('findAll', () => {
@@ -38,7 +42,7 @@ describe('UserComponent -> controller', () => {
         .post('/v1/users')
         .set('Accept', 'application/json')
         .type('json')
-        .send({ email: 'test@test.com', fullName: 'Test Name' })
+        .send({ email: 'test@test.com', fullName: 'TestName' })
         .then((response) => {
           expect(response.status).toEqual(201);
         });
@@ -62,7 +66,7 @@ describe('UserComponent -> controller', () => {
         .post('/v1/users')
         .set('Accept', 'application/json')
         .type('json')
-        .send({ email: 'test@test.com', fullName: 'Test Name' })
+        .send({ email: 'test@test.com', fullName: 'TestName' })
         .then(({ body }) => {
           expect(201);
           expect(body).toHaveProperty('data');
@@ -187,7 +191,7 @@ describe('UserComponent -> controller', () => {
 
     beforeAll(async () => {
       data.email = 'testerupdate@mail.com';
-      data.fullName = 'Tester NotUpdated';
+      data.fullName = 'TesterNotUpdated';
       JSON.stringify(data);
       response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
         .send(data);
@@ -195,8 +199,8 @@ describe('UserComponent -> controller', () => {
 
     test('when user returned and updated successfully', (done) => {
       const newData = {};
-      newData.id = response.body.data._id;
-      newData.fullName = 'Updated Name';
+      newData.id = response.body.data.id;
+      newData.fullName = 'UpdatedName';
       JSON.stringify(newData);
       supertest(server)
         .put('/v1/users')
@@ -213,7 +217,7 @@ describe('UserComponent -> controller', () => {
 
     test('when updated field is empty', (done) => {
       const newData = {};
-      newData.id = response.body.data._id;
+      newData.id = response.body.data.id;
       newData.fullName = '';
       JSON.stringify(newData);
       supertest(server)
@@ -232,7 +236,7 @@ describe('UserComponent -> controller', () => {
 
     test('when updated field is too long', (done) => {
       const newData = {};
-      newData.id = response.body.data._id;
+      newData.id = response.body.data.id;
       newData.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
       JSON.stringify(newData);
       supertest(server)
@@ -251,7 +255,7 @@ describe('UserComponent -> controller', () => {
 
     test('when updated field length must be more than 5 characters', (done) => {
       const newData = {};
-      newData.id = response.body.data._id;
+      newData.id = response.body.data.id;
       newData.fullName = 'aaa';
       JSON.stringify(newData);
       supertest(server)
@@ -263,53 +267,6 @@ describe('UserComponent -> controller', () => {
           expect(422);
           expect(body).toHaveProperty('details');
           expect(body.details[0].message).toBe('"fullName" length must be at least 5 characters long');
-          done();
-        })
-        .catch((err) => done(err));
-    });
-  });
-
-  describe('deleteById', () => {
-    let response;
-    const data = {};
-
-    beforeAll(async () => {
-      data.email = 'testerdelete@mail.com';
-      data.fullName = 'Tester Delete';
-      JSON.stringify(data);
-      response = await supertest(server).post('/v1/users').set('Accept', 'application/json').type('json')
-        .send(data);
-    });
-
-    test('when deleted successfully', (done) => {
-      const newData = {};
-      newData.id = response.body.data._id;
-      JSON.stringify(newData);
-      supertest(server)
-        .delete('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('data');
-          expect(body.data.deletedCount).toBe(1);
-          done();
-        })
-        .catch((err) => done(err));
-    });
-
-    test('when deleted not successfully', (done) => {
-      const newData = {};
-      newData.id = response.body.data._id;
-      JSON.stringify(newData);
-      supertest(server)
-        .delete('/v1/users')
-        .set('Accept', 'application/json')
-        .type('json')
-        .send(newData)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('data');
-          expect(body.data.deletedCount).toBe(0);
           done();
         })
         .catch((err) => done(err));

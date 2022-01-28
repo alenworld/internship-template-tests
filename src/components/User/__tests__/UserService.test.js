@@ -3,9 +3,7 @@ const UserModel = require('../model');
 const UserService = require('../service');
 const connections = require('../../../config/connection');
 
-beforeAll(() => {
-  process.env.NODE_ENV = 'test';
-});
+process.env.NODE_ENV = test;
 
 describe('UserComponent -> service', () => {
   beforeAll(async () => {
