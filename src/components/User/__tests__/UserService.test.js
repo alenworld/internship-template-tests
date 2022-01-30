@@ -28,11 +28,10 @@ describe('UserComponent -> service', () => {
 
   describe('create', () => {
     test('create', (done) => {
-      const profile = { email: 'test@gmail.com', fullName: 'Tester Name' };
+      const profile = { email: 'test@gmail.com', fullName: 'TesterName' };
       UserService.create(profile)
         .then((data) => {
           expect(data).toMatchObject(profile);
-          console.log(data);
           uid = data._id;
           done();
         })
@@ -56,7 +55,6 @@ describe('UserComponent -> service', () => {
     test('when return an array with user', (done) => {
       UserService.findById(uid)
         .then((response) => {
-          console.log(response);
           expect(response).toHaveProperty('_id');
           expect(response._id).toStrictEqual(uid);
           done();

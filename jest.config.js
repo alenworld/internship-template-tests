@@ -1,5 +1,5 @@
 module.exports = {
-  verbose: true,
+  verbose: false,
   collectCoverage: true,
   collectCoverageFrom: ['**/*.js'],
   coveragePathIgnorePatterns: ['/node_modules/', '/coverage/'],
