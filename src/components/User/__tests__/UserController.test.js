@@ -17,9 +17,6 @@ const userInput = {
   fullName: 'JohnDoe',
 };
 
-/** *************^^^^^^^^^^^^^^^^^^^^^*************** */
-/** **************IMPORTS AND CONSTS***************** */
-/** ************************************************* */
 beforeAll(async () => {
   await UserModel.deleteMany({});
 });
@@ -229,9 +226,9 @@ describe('UserComponent', () => {
     });
   });
 
-  describe('PUT /v1/users/:id', () => {
-    describe('given user payload are valid', (done) => {
-      userInput.email = 'newemail@gmail.com';
+  describe('PUT /v1/users', () => {
+    describe('given user payload are valid', () => {
+      const newUser = { id: '', fullName: 'updatedNameHere' };
       test('should return 200 and updated user', (done) => {
         supertest(server)
           .post('/v1/users')
@@ -239,14 +236,15 @@ describe('UserComponent', () => {
           .type('json')
           .send(userInput)
           .expect(201)
-          .then(() => {
-            userInput.fullName = 'updatedNameHere';
+          .then((response) => {
+            newUser.id = `${response.body.data._id}`;
             supertest(server)
               .put('/v1/users')
               .set('Accept', 'application/json')
               .type('json')
-              .expect(200)
+              .send(newUser)
               .then(({ body }) => {
+                expect(200);
                 expect(body.data.acknowledged).toBe(true);
               });
             done();
@@ -254,49 +252,120 @@ describe('UserComponent', () => {
           .catch((err) => done(err));
       });
 
-      /** ************************************************* */
-      /** *****************STOPPED HERE******************** */
-      /** ************************************************* */
-
       test('should return 404 with user not found', (done) => {
-        done();
+        supertest(server)
+          .put('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(newUser)
+          .then(() => {
+            expect(404).toBe(404);
+            done();
+          })
+          .catch((err) => done(err));
       });
     });
 
     describe('should return 422, given user payload are not valid', () => {
-      test('given fullName cannot be empty', (done) => {
-        // use service mock
-        // then supertest(server)
-        done();
+      const newUser = { id: '', fullName: '' };
+
+      beforeAll(async () => {
+        userInput.fullName = 'newUser';
+        userInput.email = 'putnonvalid@example.com';
+        const response = await UserModel.create(userInput);
+        newUser.id = response._id;
+      });
+
+      afterEach(async () => {
+        await UserModel.findByIdAndRemove(newUser.id);
       });
 
       test('given fullName must be more than 5 characters', (done) => {
-        done();
+        newUser.fullName = 'abcd';
+        supertest(server)
+          .put('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(newUser)
+          .then((response) => {
+            expect(response.status).toBe(422);
+            done();
+          })
+          .catch((err) => done(err));
       });
 
       test('given fullName is more than 30 characters', (done) => {
-        done();
+        newUser.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+        supertest(server)
+          .put('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(newUser)
+          .then((response) => {
+            expect(response.status).toBe(422);
+            done();
+          })
+          .catch((err) => done(err));
       });
 
       test('given fullName field cannot be contains numbers, symbols and whitespace', (done) => {
-        done();
+        newUser.fullName = '1afds#fd';
+        supertest(server)
+          .put('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(newUser)
+          .then((response) => {
+            expect(response.status).toBe(422);
+            done();
+          })
+          .catch((err) => done(err));
       });
     });
   });
-  // PUT id
 
-  describe('DELETE /v1/users/:id', () => {
+  describe('DELETE /v1/users', () => {
+    const deleteUser = { id: '' };
+
+    beforeAll(async () => {
+      userInput.fullName = 'newUser';
+      userInput.email = 'deleted@example.com';
+      const response = await UserModel.create(userInput);
+      deleteUser.id = response._id;
+    });
+
+    afterEach(async () => {
+      await UserModel.findByIdAndRemove(deleteUser.id);
+    });
+
     describe('given user payload are valid', () => {
-      test('should return 200 and check user was not found 404', (done) => {
-        // use service mock
-        // then supertest(server)
-        done();
+      test('should return 200', (done) => {
+        supertest(server)
+          .delete('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(deleteUser)
+          .then((response) => {
+            expect(response.status).toBe(200);
+            expect(response.body.data.deletedCount).toBe(1);
+            done();
+          })
+          .catch((err) => done(err));
       });
 
-      test('should return 404 with user not found', (done) => {
-        done();
+      test('should return 200 and user not found', (done) => {
+        supertest(server)
+          .delete('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(deleteUser)
+          .then((response) => {
+            expect(response.status).toBe(200);
+            expect(response.body.data.deletedCount).toBe(0);
+            done();
+          })
+          .catch((err) => done(err));
       });
     });
   });
-  // DELETE id
 });

@@ -2,7 +2,8 @@
     "env": {
         "commonjs": true,
         "es2021": true,
-        "node": true
+        "node": true,
+        "jest/globals":true
     },
     "plugins": [
       "jest",
@@ -17,8 +18,5 @@
     "rules": {
         "indent": ["error", 2],
         "no-console": "off"
-    },
-    "globals": {
-      "jest/globals":true
     }
 }

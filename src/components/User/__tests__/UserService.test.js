@@ -32,6 +32,7 @@ describe('UserComponent -> service', () => {
       UserService.create(profile)
         .then((data) => {
           expect(data).toMatchObject(profile);
+          console.log(data);
           uid = data._id;
           done();
         })
@@ -51,12 +52,13 @@ describe('UserComponent -> service', () => {
     });
   });
 
-  describe.skip('findById', () => {
+  describe('findById', () => {
     test('when return an array with user', (done) => {
       UserService.findById(uid)
-        .then(({ data }) => {
-          expect(data);
-          expect(data._id).toStrictEqual(uid);
+        .then((response) => {
+          console.log(response);
+          expect(response).toHaveProperty('_id');
+          expect(response._id).toStrictEqual(uid);
           done();
         })
         .catch((err) => done(err));
