@@ -62,4 +62,39 @@ describe('UserComponent -> service', () => {
         .catch((err) => done(err));
     });
   });
+
+  describe('updateById', () => {
+    const profile = { email: 'testById@gmail.com', fullName: 'TesterName' };
+    let newUserId;
+    beforeEach(() => {
+      UserService.create(profile)
+        .then((response) => {
+          console.log(response._id);
+          newUserId = response._id;
+        });
+    });
+    afterEach(() => {
+      UserService.deleteById(newUserId);
+    });
+
+    test('when return modified count 1', (done) => {
+      UserService.updateById(newUserId, { fullName: 'NewTester' })
+        .then((response) => {
+          expect(response).toHaveProperty('matchedCount');
+          expect(response.matchedCount).toBe(1);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+
+    test('when return a not exists user', (done) => {
+      UserService.updateById('61fafcfe29649149a85718e3', { fullName: 'NewTester' })
+        .then((response) => {
+          expect(response).toHaveProperty('matchedCount');
+          expect(response.matchedCount).toBe(0);
+          done();
+        })
+        .catch((err) => done(err));
+    });
+  });
 });

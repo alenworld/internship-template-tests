@@ -1,31 +1,29 @@
 const supertest = require('supertest');
-const mongoose = require('mongoose');
-const connections = require('../../../config/connection');
 const server = require('../../../server/server');
 const UserModel = require('../model');
-
-const userId = new mongoose.Types.ObjectId().toString();
-
-const userPayload = {
-  _id: userId,
-  email: 'john.doe@example.com',
-  fullName: 'JohnDoe',
-};
+const connections = require('../../../config/connection');
 
 const userInput = {
   email: 'test@example.com',
   fullName: 'JohnDoe',
 };
 
-beforeAll(async () => {
-  await UserModel.deleteMany({});
-});
-
-afterAll(async () => {
-  await UserModel.deleteMany({});
-  await connections.close();
-});
 describe('UserComponent', () => {
+  /**
+ * Connect to a new in-memory database before running any tests.
+ */
+  beforeAll(async () => {
+    await UserModel.deleteMany({});
+  });
+
+  /**
+* Remove and close the db and server.
+*/
+  afterAll(async () => {
+    await UserModel.deleteMany({});
+    await connections.close();
+  });
+
   describe('GET /v1/users', () => {
     test('should return a list users', (done) => {
       supertest(server)
@@ -50,7 +48,7 @@ describe('UserComponent', () => {
           .type('json')
           .send(userInput)
           .then(({ body }) => {
-            expect(201);
+            expect(201).toBe(201);
             expect(body).toHaveProperty('data');
             expect(body.data).toMatchObject(userInput);
 
@@ -198,13 +196,15 @@ describe('UserComponent', () => {
       });
 
       test('should return a 200 and user', (done) => {
+        expect.assertions(1);
         userInput.fullName = 'NewName';
         supertest(server)
           .get(`/v1/users/${newUserId}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200)
-          .then(() => {
+          .then((response) => {
+            expect(response.status).toBe(200);
             done();
           })
           .catch((err) => done(err));

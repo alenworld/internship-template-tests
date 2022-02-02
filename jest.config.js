@@ -1,8 +1,8 @@
 module.exports = {
-  verbose: false,
+  verbose: true,
   collectCoverage: true,
   collectCoverageFrom: ['**/*.js'],
-  coveragePathIgnorePatterns: ['/node_modules/', '/coverage/'],
+  coveragePathIgnorePatterns: ['/node_modules/', '/coverage/', '/test/'],
   coverageReporters: ['json', 'lcov', 'text'],
   coverageThreshold: {
     global: {

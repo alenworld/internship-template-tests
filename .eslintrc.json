@@ -17,6 +17,10 @@
     },
     "rules": {
         "indent": ["error", 2],
-        "no-console": "off"
+        "no-console": "off",
+        "no-underscore-dangle":"off"
+    },
+    "globals": {
+      "jest":true
     }
 }
