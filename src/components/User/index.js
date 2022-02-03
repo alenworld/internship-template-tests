@@ -78,7 +78,6 @@ async function create(req, res, next) {
     }
 
     const user = await UserService.create(value);
-
     return res.status(201).json({
       data: user,
     });
@@ -89,7 +88,6 @@ async function create(req, res, next) {
         details: error.message,
       });
     }
-
     res.status(500).json({
       message: error.name,
       details: error.message,
