@@ -10,6 +10,10 @@ const userInput = {
 };
 
 describe('UserComponent -> service', () => {
+  afterAll(async () => {
+    await mongoose.connection.close();
+    await mongoose.disconnect();
+  });
   describe('findAll', () => {
     test('when return a array with no users', (done) => {
       UserModel.find.mockResolvedValue([]);

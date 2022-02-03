@@ -22,7 +22,6 @@
     "compression": "1.7.4",
     "cookie-parser": "1.4.6",
     "cors": "2.8.5",
-    "directory-tree": "3.0.1",
     "dotenv": "14.2.0",
     "express": "4.17.1",
     "helmet": "4.6.0",
