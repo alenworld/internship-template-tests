@@ -58,7 +58,19 @@ describe('UserComponent -> service', () => {
           .catch((err) => done(err));
       });
       test('E11000: should return error because email already exists', (done) => {
-        done();
+        const uid = new mongoose.Types.ObjectId();
+        const userOne = {
+          fullName: userInput.fullName,
+          email: userInput.email,
+          _id: uid,
+        };
+        UserModel.create.mockResolvedValue(userOne);
+        UserService.create(userInput)
+          .then((data) => {
+            expect(data).toMatchObject(userOne);
+            done();
+          })
+          .catch((err) => done(err));
       });
     });
     describe('given the user payload are not valid', () => {
@@ -141,6 +153,7 @@ describe('UserComponent -> service', () => {
           })
           .catch((err) => done(err));
       });
+
       test('should return user not found', (done) => {
         const uid = new mongoose.Types.ObjectId();
         const userOne = {
@@ -164,8 +177,19 @@ describe('UserComponent -> service', () => {
     });
 
     describe('given user payload are not valid', () => {
+      const uid = new mongoose.Types.ObjectId();
       test('given id must not be empty', (done) => {
-        done();
+        const userPayload = {
+          id: uid,
+          fullName: 'Tester',
+        };
+        UserModel.updateOne.mockResolvedValue(mongoose.Error.ValidatorError);
+        UserService.updateById({ _id: userPayload.id }, userPayload)
+          .then((data) => {
+            expect(data).toBe(mongoose.Error.ValidatorError);
+            done();
+          })
+          .catch((err) => done(err));
       });
       test('given id must be are valid', (done) => {
         done();

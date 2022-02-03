@@ -1,4 +1,4 @@
-const { Error } = require('mongoose');
+const mongoose = require('mongoose');
 const UserModel = require('../model');
 const connections = require('../../../config/connection');
 
@@ -38,12 +38,12 @@ describe('UserComponent -> model', () => {
   test('create user without required field should failed', async () => {
     let err;
     try {
-      const error = await UserModel.create({ email: 'tester@mail.com' });
+      await UserModel.create({ email: 'tester@mail.com' });
     } catch (error) {
       err = error;
     }
 
-    expect(err).toBeInstanceOf(Error.ValidationError);
+    expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
     expect(err.errors.fullName).toBeDefined();
   });
 });

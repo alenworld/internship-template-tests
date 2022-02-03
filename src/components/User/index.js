@@ -107,7 +107,6 @@ async function create(req, res, next) {
 async function updateById(req, res, next) {
   try {
     const { error, value } = UserValidation.updateById(req.body);
-
     if (error) {
       throw new ValidationError(error.details);
     }
@@ -144,7 +143,6 @@ async function updateById(req, res, next) {
 async function deleteById(req, res, next) {
   try {
     const { error } = UserValidation.deleteById(req.body);
-
     if (error) {
       throw new ValidationError(error.details);
     }
