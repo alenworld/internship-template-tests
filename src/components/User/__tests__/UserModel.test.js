@@ -18,9 +18,6 @@ describe('UserComponent -> model', () => {
     await connections.close().catch((err) => {
       console.error(err);
     });
-    await mongoose.disconnect().catch((err) => {
-      console.error(err);
-    });
   });
 
   test('create & save user successfully', async () => {
@@ -48,13 +45,5 @@ describe('UserComponent -> model', () => {
 
     expect(err).toBeInstanceOf(mongoose.Error.ValidationError);
     expect(err.errors.fullName).toBeDefined();
-  });
-
-  test('delete user', async () => {
-    const uid = new mongoose.Types.ObjectId();
-    const userDeleted = await UserModel.deleteOne({ _id: uid });
-
-    expect(userDeleted).toHaveProperty('deletedCount');
-    expect(userDeleted.deletedCount).toBe(0);
   });
 });

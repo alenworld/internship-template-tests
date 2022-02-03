@@ -16,6 +16,7 @@ describe('UserComponent -> service', () => {
   });
   describe('findAll', () => {
     test('when return a array with no users', (done) => {
+      expect.assertions(2);
       UserModel.find.mockResolvedValue([]);
       UserService.findAll({})
         .then((data) => {
@@ -27,6 +28,7 @@ describe('UserComponent -> service', () => {
     });
 
     test('when return a array with users more than 0', (done) => {
+      expect.assertions(2);
       const uid = new mongoose.Types.ObjectId();
       const userOne = {
         fullName: 'dgfdadsx',
@@ -47,6 +49,7 @@ describe('UserComponent -> service', () => {
   describe('create', () => {
     describe('given the user payload are valid', () => {
       test('should return created user', (done) => {
+        expect.assertions(1);
         const uid = new mongoose.Types.ObjectId();
         const userOne = {
           fullName: userInput.fullName,
@@ -62,7 +65,27 @@ describe('UserComponent -> service', () => {
           .catch((err) => done(err));
       });
       test('E11000: should return error because email already exists', (done) => {
+        expect.assertions(1);
         const uid = new mongoose.Types.ObjectId();
+        const userOne = {
+          fullName: userInput.fullName,
+          email: userInput.email,
+          _id: uid,
+        };
+        UserModel.create.mockResolvedValue(userOne);
+        UserService.create(userInput)
+          .then((data) => {
+            expect('error').toBe('error');
+            done();
+          })
+          .catch((err) => done(err));
+      });
+    });
+    describe('given the user payload are not valid', () => {
+      test('should the email not be empty', (done) => {
+        expect.assertions(1);
+        const uid = new mongoose.Types.ObjectId();
+        userInput.email = '';
         const userOne = {
           fullName: userInput.fullName,
           email: userInput.email,
@@ -75,11 +98,6 @@ describe('UserComponent -> service', () => {
             done();
           })
           .catch((err) => done(err));
-      });
-    });
-    describe('given the user payload are not valid', () => {
-      test('should the email not be empty', (done) => {
-        done();
       });
       test('the email string are not valid', (done) => {
         done();
@@ -102,6 +120,7 @@ describe('UserComponent -> service', () => {
   describe('findById', () => {
     describe('given id are valid', () => {
       test('should return user', (done) => {
+        expect.assertions(1);
         const uid = new mongoose.Types.ObjectId();
         const userOne = {
           fullName: userInput.fullName,
@@ -117,6 +136,7 @@ describe('UserComponent -> service', () => {
           .catch((err) => done(err));
       });
       test('should return user not found', (done) => {
+        expect.assertions(1);
         const uid = new mongoose.Types.ObjectId();
         UserModel.findById.mockResolvedValue(null);
         UserService.findById(uid)
@@ -137,6 +157,7 @@ describe('UserComponent -> service', () => {
   describe('updateById', () => {
     describe('given user payload are valid', () => {
       test('should return update info', (done) => {
+        expect.assertions(2);
         const uid = new mongoose.Types.ObjectId();
         const userOne = {
           fullName: userInput.fullName,
@@ -159,6 +180,7 @@ describe('UserComponent -> service', () => {
       });
 
       test('should return user not found', (done) => {
+        expect.assertions(1);
         const uid = new mongoose.Types.ObjectId();
         const userOne = {
           fullName: userInput.fullName,
@@ -183,6 +205,7 @@ describe('UserComponent -> service', () => {
     describe('given user payload are not valid', () => {
       const uid = new mongoose.Types.ObjectId();
       test('given id must not be empty', (done) => {
+        expect.assertions(1);
         const userPayload = {
           id: uid,
           fullName: 'Tester',
@@ -216,6 +239,7 @@ describe('UserComponent -> service', () => {
   describe('deleteById', () => {
     describe('given user payload are valid', () => {
       test('should return deleteCount 1', (done) => {
+        expect.assertions(2);
         const uid = new mongoose.Types.ObjectId();
         UserModel.deleteOne.mockResolvedValue({ deletedCount: 1 });
         UserService.deleteById({ id: uid })
@@ -227,6 +251,7 @@ describe('UserComponent -> service', () => {
           .catch((err) => done(err));
       });
       test('should return deleteCount 0', (done) => {
+        expect.assertions(2);
         const uid = new mongoose.Types.ObjectId();
         UserModel.deleteOne.mockResolvedValue({ deletedCount: 0 });
         UserService.deleteById({ id: uid })

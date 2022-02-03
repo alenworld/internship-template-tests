@@ -7,6 +7,7 @@ const UserService = require('../service');
 
 jest.mock('../validation');
 const UserValidation = require('../validation');
+const ValidationError = require('../../../error/ValidationError');
 
 const userInput = {
   email: 'test@example.com',
@@ -27,6 +28,18 @@ describe('UserComponent -> controller', () => {
           done();
         })
         .catch((err) => done(err));
+    });
+
+    test('should return error 500', (done) => {
+      expect.assertions(0);
+      UserService.findAll.mockImplementation(() => {
+        throw new Error('Internal Server Error');
+      });
+      supertest(server)
+        .get('/v1/users')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .expect(500, done);
     });
   });
 
@@ -51,9 +64,10 @@ describe('UserComponent -> controller', () => {
       });
 
       test('E11000: should return 500 because email already exists', (done) => {
+        expect.assertions(3);
         UserValidation.create.mockReturnValue({ value: userInput });
         UserService.create.mockImplementation(() => {
-          throw new mongoose.mongo.MongoServerError('E11000 duplicate key error collection: users-test.usermodel index: email_1 dup key: { email: "asgfda@fmail.com" }');
+          throw new mongoose.mongo.MongoServerError('E11000: duplicate');
         });
         supertest(server)
           .post('/v1/users')
@@ -73,6 +87,7 @@ describe('UserComponent -> controller', () => {
 
     describe('should return 422, given the user payloads are not valid', () => {
       test('the email should not be empty', (done) => {
+        expect.assertions(4);
         userInput.email = '';
         UserValidation.create.mockReturnValue({
           error: {
@@ -87,11 +102,11 @@ describe('UserComponent -> controller', () => {
           .set('Accept', 'application/json')
           .type('json')
           .send(userInput)
-          .then(({ body }) => {
-            expect(422);
-            expect(body).toHaveProperty('message');
-            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
-            expect(body.details[0].type).toBe('string.empty');
+          .then((response) => {
+            expect(response.status).toBe(422);
+            expect(response.body).toHaveProperty('message');
+            expect(response.body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+            expect(response.body.details[0].type).toBe('string.empty');
 
             done();
           })
@@ -99,6 +114,7 @@ describe('UserComponent -> controller', () => {
       });
 
       test('the email string are not valid', (done) => {
+        expect.assertions(4);
         userInput.email = 'notemail';
         UserValidation.create.mockReturnValue({
           error: {
@@ -118,11 +134,11 @@ describe('UserComponent -> controller', () => {
           .set('Accept', 'application/json')
           .type('json')
           .send(userInput)
-          .then(({ body }) => {
-            expect(422);
-            expect(body).toHaveProperty('message');
-            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
-            expect(body.details[0].type).toBe('string.email');
+          .then((response) => {
+            expect(response.status).toBe(422);
+            expect(response.body).toHaveProperty('message');
+            expect(response.body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+            expect(response.body.details[0].type).toBe('string.email');
 
             done();
           })
@@ -130,6 +146,7 @@ describe('UserComponent -> controller', () => {
       });
 
       test('the fullName should not be empty', (done) => {
+        expect.assertions(4);
         userInput.email = 'test@example.com';
         userInput.fullName = '';
         UserValidation.create.mockReturnValue({
@@ -145,11 +162,11 @@ describe('UserComponent -> controller', () => {
           .set('Accept', 'application/json')
           .type('json')
           .send(userInput)
-          .then(({ body }) => {
-            expect(422);
-            expect(body).toHaveProperty('message');
-            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
-            expect(body.details[0].type).toBe('string.empty');
+          .then((response) => {
+            expect(response.status).toBe(422);
+            expect(response.body).toHaveProperty('message');
+            expect(response.body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+            expect(response.body.details[0].type).toBe('string.empty');
 
             done();
           })
@@ -157,6 +174,7 @@ describe('UserComponent -> controller', () => {
       });
 
       test('the fullname should more than 5 characters', (done) => {
+        expect.assertions(4);
         userInput.fullName = 'asdf';
         UserValidation.create.mockReturnValue({
           error: {
@@ -176,11 +194,11 @@ describe('UserComponent -> controller', () => {
           .set('Accept', 'application/json')
           .type('json')
           .send(userInput)
-          .then(({ body }) => {
-            expect(422).toBe(422);
-            expect(body).toHaveProperty('message');
-            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
-            expect(body.details[0].type).toBe('string.min');
+          .then((response) => {
+            expect(response.status).toBe(422);
+            expect(response.body).toHaveProperty('message');
+            expect(response.body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+            expect(response.body.details[0].type).toBe('string.min');
 
             done();
           })
@@ -188,6 +206,7 @@ describe('UserComponent -> controller', () => {
       });
 
       test('the fullName should not more than 30 characters', (done) => {
+        expect.assertions(4);
         userInput.fullName = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
         UserValidation.create.mockReturnValue({
           error: {
@@ -207,11 +226,11 @@ describe('UserComponent -> controller', () => {
           .set('Accept', 'application/json')
           .type('json')
           .send(userInput)
-          .then(({ body }) => {
-            expect(422);
-            expect(body).toHaveProperty('message');
-            expect(body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
-            expect(body.details[0].type).toBe('string.max');
+          .then((response) => {
+            expect(response.status).toBe(422);
+            expect(response.body).toHaveProperty('message');
+            expect(response.body.message).toBe('E_MISSING_OR_INVALID_PARAMS');
+            expect(response.body.details[0].type).toBe('string.max');
 
             done();
           })
@@ -242,18 +261,54 @@ describe('UserComponent -> controller', () => {
           .catch((err) => done(err));
       });
 
-      test('should return 404 with user not found', (done) => {
+      test('should return 200 with user not found', (done) => {
         const uid = new mongoose.Types.ObjectId();
         UserValidation.findById.mockReturnValue({ value: { id: uid } });
         UserService.findById.mockResolvedValue(null);
+        expect.assertions(2);
         supertest(server)
           .get(`/v1/users/${uid}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200)
-          .then(({ body }) => {
-            expect(404).toBe(404);
-            expect(body.data).toBeNull();
+          .then((response) => {
+            expect(response.status).toBe(200);
+            expect(response.body.data).toBeNull();
+            done();
+          })
+          .catch((err) => done(err));
+      });
+    });
+
+    describe('422 given _id are not valid', () => {
+      test('should return error', (done) => {
+        const uid = new mongoose.Types.ObjectId();
+        UserValidation.findById.mockImplementation(() => {
+          throw new ValidationError('Argument passed in must be a single String of 12 bytes or a string of 24 hex characters');
+        });
+        UserService.findById.mockResolvedValue(null);
+        supertest(server)
+          .get(`/v1/users/${uid}`)
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/)
+          .expect(422, done);
+      });
+    });
+
+    describe('500 return Internal Server Error', () => {
+      test('Internal Server Error', (done) => {
+        expect.assertions(1);
+        UserValidation.create.mockReturnValue({ value: userInput });
+        UserService.create.mockImplementation(() => {
+          throw new Error('Internal Server Error');
+        });
+        supertest(server)
+          .post('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(userInput)
+          .then((response) => {
+            expect(response.status).toBe(500);
             done();
           })
           .catch((err) => done(err));
@@ -274,15 +329,17 @@ describe('UserComponent -> controller', () => {
           upsertedCount: 0,
           matchedCount: 1,
         });
+        expect.assertions(4);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
           .type('json')
           .send(newUser)
-          .then(({ body }) => {
-            expect(body).toHaveProperty('data');
-            expect(body.data.matchedCount).toBe(1);
-            expect(body.data.modifiedCount).toBe(1);
+          .then((response) => {
+            expect(response.status).toBe(200);
+            expect(response.body).toHaveProperty('data');
+            expect(response.body.data.matchedCount).toBe(1);
+            expect(response.body.data.modifiedCount).toBe(1);
             done();
           })
           .catch((err) => done(err));
@@ -299,6 +356,7 @@ describe('UserComponent -> controller', () => {
           upsertedCount: 0,
           matchedCount: 0,
         });
+        expect.assertions(3);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
@@ -328,6 +386,7 @@ describe('UserComponent -> controller', () => {
             }],
           },
         });
+        expect.assertions(3);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
@@ -357,6 +416,7 @@ describe('UserComponent -> controller', () => {
             }],
           },
         });
+        expect.assertions(3);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
@@ -386,6 +446,7 @@ describe('UserComponent -> controller', () => {
             }],
           },
         });
+        expect.assertions(2);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
@@ -414,6 +475,7 @@ describe('UserComponent -> controller', () => {
             }],
           },
         });
+        expect.assertions(2);
         supertest(server)
           .put('/v1/users')
           .set('Accept', 'application/json')
@@ -422,6 +484,28 @@ describe('UserComponent -> controller', () => {
           .then((response) => {
             expect(response.status).toBe(422);
             expect(response.body.details[0].type).toBe('string.pattern.base');
+            done();
+          })
+          .catch((err) => done(err));
+      });
+    });
+
+    describe('should return error 500', () => {
+      test('Internal Server Error', (done) => {
+        expect.assertions(1);
+        const uid = new mongoose.Types.ObjectId();
+        const newUser = { id: uid, fullName: 'updatedNameHere' };
+        UserValidation.updateById.mockReturnValue({ value: newUser });
+        UserService.updateById.mockImplementation(() => {
+          throw new Error('Internal Server Error');
+        });
+        supertest(server)
+          .put('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(newUser)
+          .then((response) => {
+            expect(response.status).toBe(500);
             done();
           })
           .catch((err) => done(err));
@@ -439,6 +523,7 @@ describe('UserComponent -> controller', () => {
         UserService.deleteById.mockResolvedValue({
           deletedCount: 1,
         });
+        expect.assertions(2);
         supertest(server)
           .delete('/v1/users')
           .set('Accept', 'application/json')
@@ -457,6 +542,7 @@ describe('UserComponent -> controller', () => {
         UserService.deleteById.mockResolvedValue({
           deletedCount: 0,
         });
+        expect.assertions(2);
         supertest(server)
           .delete('/v1/users')
           .set('Accept', 'application/json')
@@ -465,6 +551,24 @@ describe('UserComponent -> controller', () => {
           .then((response) => {
             expect(response.status).toBe(200);
             expect(response.body.data.deletedCount).toBe(0);
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      test('should return 500', (done) => {
+        UserValidation.deleteById.mockReturnValue({ value: deleteUser });
+        UserService.deleteById.mockImplementation(() => {
+          throw new Error('Internal Server Error');
+        });
+        expect.assertions(1);
+        supertest(server)
+          .delete('/v1/users')
+          .set('Accept', 'application/json')
+          .type('json')
+          .send(deleteUser)
+          .then((response) => {
+            expect(response.status).toBe(500);
             done();
           })
           .catch((err) => done(err));
@@ -484,6 +588,7 @@ describe('UserComponent -> controller', () => {
             }],
           },
         });
+        expect.assertions(3);
         supertest(server)
           .delete('/v1/users')
           .set('Accept', 'application/json')
